@@ -78,7 +78,7 @@ A digital collection platform that allows museum visitors to upload their hand-d
    POSTGRES_URL_NON_POOLING=
 
    # Storage (from Vercel Blob)
-   BLOB_READ_WRITE_TOKEN=
+   BLOB_READ_WRITE_TOKEN="vercel_blob_rw_hXDc755Noqkrltyn_zZaCwp403RGsFYl98MZ80gNLbvpAmF"
 
    # Authentication
    NEXTAUTH_SECRET=your-secret-key-here

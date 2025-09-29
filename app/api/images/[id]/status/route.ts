@@ -9,7 +9,7 @@ const statusSchema = z.object({
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -21,6 +21,7 @@ export async function PUT(
       );
     }
 
+    const { id } = await params;
     const body = await request.json();
     const validationResult = statusSchema.safeParse(body);
 
@@ -32,7 +33,7 @@ export async function PUT(
     }
 
     const { status } = validationResult.data;
-    const image = await updateImageStatus(params.id, status);
+    const image = await updateImageStatus(id, status);
 
     return NextResponse.json({ success: true, data: image });
   } catch (error) {

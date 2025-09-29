@@ -3,10 +3,10 @@ import { getSelectedImages } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { category: string } }
+  { params }: { params: Promise<{ category: string }> }
 ) {
   try {
-    const { category } = params;
+    const { category } = await params;
 
     if (category !== 'men' && category !== 'women') {
       return NextResponse.json(

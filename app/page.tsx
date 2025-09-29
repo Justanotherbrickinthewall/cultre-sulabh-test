@@ -55,21 +55,21 @@ export default function Home() {
               <Monitor className="w-8 h-8 text-cyan-600" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">View Gallery</h3>
-            <p className="text-gray-600 mb-6">
-              Experience the curated collection of designs in our interactive slideshow.
-            </p>
-            <div className="space-y-2">
-              <Link href="/slideshow/men" className="block">
-                <Button variant="outline" className="w-full border-cyan-200 hover:bg-cyan-50 py-3 rounded-xl">
-                  Men's Gallery
-                </Button>
-              </Link>
-              <Link href="/slideshow/women" className="block">
-                <Button variant="outline" className="w-full border-cyan-200 hover:bg-cyan-50 py-3 rounded-xl">
-                  Women's Gallery
-                </Button>
-              </Link>
-            </div>
+              <p className="text-gray-600 mb-6">
+                Experience the curated collection of designs in our interactive slideshow.
+              </p>
+              <div className="space-y-2">
+                <Link href="/slideshow/men" className="block">
+                  <Button variant="outline" className="w-full border-cyan-200 hover:bg-cyan-50 py-3 rounded-xl">
+                    Men&apos;s Gallery
+                  </Button>
+                </Link>
+                <Link href="/slideshow/women" className="block">
+                  <Button variant="outline" className="w-full border-cyan-200 hover:bg-cyan-50 py-3 rounded-xl">
+                    Women&apos;s Gallery
+                  </Button>
+                </Link>
+              </div>
           </div>
         </div>
 

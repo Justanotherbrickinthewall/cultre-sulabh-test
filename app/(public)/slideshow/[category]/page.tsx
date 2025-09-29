@@ -7,7 +7,7 @@ import { Image } from '@/types';
 
 export default function SlideshowPage() {
   const params = useParams();
-  const category = params.category as 'men' | 'women';
+  const category = (params.category as string) as 'men' | 'women';
   const [images, setImages] = useState<Image[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +60,7 @@ export default function SlideshowPage() {
           <p className="text-gray-300 mb-6">
             {error 
               ? 'There was an error loading the gallery. Please try again later.'
-              : `No ${category}'s designs have been selected for display yet. Check back soon for amazing creative works!`
+              : `No ${category}&apos;s designs have been selected for display yet. Check back soon for amazing creative works!`
             }
           </p>
           <div className="text-sm text-gray-400">

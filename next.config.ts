@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['@vercel/postgres', '@vercel/blob'],
-  },
+  serverExternalPackages: ['@vercel/postgres', '@vercel/blob'],
   images: {
     remotePatterns: [
       {
