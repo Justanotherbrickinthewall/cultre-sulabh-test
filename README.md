@@ -1,4 +1,4 @@
-# Cultre Sulabh - Museum Collection App
+# Cultre Sulabh - Museum Collection App - v2
 
 A digital collection platform that allows museum visitors to upload their hand-drawn designs through a physical kiosk setup, with admin management and public slideshow display capabilities.
 
