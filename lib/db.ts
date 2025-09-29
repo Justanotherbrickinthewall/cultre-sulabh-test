@@ -92,13 +92,15 @@ export async function bulkUpdateImageStatus(
   status: 'selected' | 'not_selected'
 ): Promise<Image[]> {
   try {
-    const result = await sql`
-      UPDATE images 
-      SET status = ${status}, updated_at = NOW()
-      WHERE id = ANY(${ids})
-      RETURNING *
-    `;
-    return result.rows as Image[];
+    if (ids.length === 0) return [];
+    
+    // Update images one by one for now (this can be optimized later)
+    const updatedImages: Image[] = [];
+    for (const id of ids) {
+      const updated = await updateImageStatus(id, status);
+      updatedImages.push(updated);
+    }
+    return updatedImages;
   } catch (error) {
     throw new DatabaseError('Failed to bulk update image status', error);
   }

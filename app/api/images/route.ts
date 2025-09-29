@@ -7,7 +7,7 @@ import { z } from 'zod';
 const uploadSchema = z.object({
   creator_name: z.string().min(1, 'Name is required').max(100),
   creator_email: z.string().email('Valid email is required'),
-  category: z.enum(['men', 'women'], { required_error: 'Category is required' }),
+  category: z.enum(['men', 'women'], { message: 'Category is required' }),
 });
 
 export async function GET() {

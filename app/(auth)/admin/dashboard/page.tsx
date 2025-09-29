@@ -4,13 +4,11 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ImageGallery } from '@/components/admin/ImageGallery';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { StatsCards } from '@/components/admin/StatsCards';
 import { Image } from '@/types';
-import { Users, ImageIcon, CheckCircle, Clock } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Camera, RotateCcw, ArrowLeft, AlertCircle } from 'lucide-react';
@@ -18,14 +18,7 @@ export function CameraCapture({ onCapture, onBack }: CameraCaptureProps) {
   const [isCapturing, setIsCapturing] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
 
-  useEffect(() => {
-    startCamera();
-    return () => {
-      stopCamera();
-    };
-  }, [facingMode]);
-
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     try {
       setError(null);
       
@@ -50,14 +43,21 @@ export function CameraCapture({ onCapture, onBack }: CameraCaptureProps) {
       console.error('Error accessing camera:', err);
       setError('Could not access camera. Please check permissions and try again.');
     }
-  };
+  }, [facingMode]);
 
-  const stopCamera = () => {
+  const stopCamera = useCallback(() => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
-  };
+  }, [stream]);
+
+  useEffect(() => {
+    startCamera();
+    return () => {
+      stopCamera();
+    };
+  }, [facingMode, startCamera, stopCamera]);
 
   const captureImage = () => {
     if (!videoRef.current || !canvasRef.current) return;

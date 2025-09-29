@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { Image } from '@/types';
 import { formatDate } from '@/lib/utils';
-import { User, Calendar, CheckCircle, Clock, Eye } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, Eye } from 'lucide-react';
 
 interface ImageCardProps {
   image: Image;

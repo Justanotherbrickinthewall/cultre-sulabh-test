@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Image } from '@/types';
 import { formatDate } from '@/lib/utils';
@@ -27,6 +27,14 @@ export function Slideshow({ images, category }: SlideshowProps) {
     return () => clearInterval(interval);
   }, [isPlaying, images.length]);
 
+  const nextSlide = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  }, [images.length]);
+
+  const prevSlide = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  }, [images.length]);
+
   // Handle keyboard controls
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -46,15 +54,7 @@ export function Slideshow({ images, category }: SlideshowProps) {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
-
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
+  }, [nextSlide, prevSlide]);
 
   const currentImage = images[currentIndex];
 
@@ -92,7 +92,7 @@ export function Slideshow({ images, category }: SlideshowProps) {
       <div className="relative z-10 p-8">
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-            {category === 'men' ? "Men's Gallery" : "Women's Gallery"}
+            {category === 'men' ? "Men&apos;s Gallery" : "Women&apos;s Gallery"}
           </h1>
           <p className="text-xl text-gray-200">
             Creative Expressions from Museum Visitors
@@ -132,7 +132,7 @@ export function Slideshow({ images, category }: SlideshowProps) {
                   <div className="flex items-center justify-center gap-4 text-sm opacity-80">
                     <span>Design {currentIndex + 1} of {images.length}</span>
                     <span>•</span>
-                    <span className="capitalize">{category}'s Collection</span>
+                    <span className="capitalize">{category}&apos;s Collection</span>
                   </div>
                 </div>
               </div>

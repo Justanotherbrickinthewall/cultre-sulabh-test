@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ImageIcon, CheckCircle, Users, Clock } from 'lucide-react';
+import { ImageIcon, CheckCircle, Users } from 'lucide-react';
 
 interface StatsCardsProps {
   stats: {
@@ -41,7 +41,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Men's Designs</CardTitle>
+          <CardTitle className="text-sm font-medium">Men&apos;s Designs</CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -54,7 +54,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Women's Designs</CardTitle>
+          <CardTitle className="text-sm font-medium">Women&apos;s Designs</CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>

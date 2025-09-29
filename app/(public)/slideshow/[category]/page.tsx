@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Slideshow } from '@/components/slideshow/Slideshow';
 import { Image } from '@/types';
@@ -12,16 +12,7 @@ export default function SlideshowPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchSelectedImages();
-    
-    // Refresh data every 30 seconds to get newly selected images
-    const interval = setInterval(fetchSelectedImages, 30000);
-    
-    return () => clearInterval(interval);
-  }, [category]);
-
-  const fetchSelectedImages = async () => {
+  const fetchSelectedImages = useCallback(async () => {
     try {
       const response = await fetch(`/api/images/selected/${category}`);
       const result = await response.json();
@@ -32,12 +23,21 @@ export default function SlideshowPage() {
       } else {
         setError(result.error || 'Failed to fetch images');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to fetch images');
     } finally {
       setLoading(false);
     }
-  };
+  }, [category]);
+
+  useEffect(() => {
+    fetchSelectedImages();
+    
+    // Refresh data every 30 seconds to get newly selected images
+    const interval = setInterval(fetchSelectedImages, 30000);
+    
+    return () => clearInterval(interval);
+  }, [category, fetchSelectedImages]);
 
   if (loading) {
     return (
@@ -45,7 +45,7 @@ export default function SlideshowPage() {
         <div className="text-center text-white">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
           <h2 className="text-2xl font-bold mb-2">Loading Gallery</h2>
-          <p className="text-gray-300">Preparing {category}'s designs...</p>
+          <p className="text-gray-300">Preparing {category}&apos;s designs...</p>
         </div>
       </div>
     );

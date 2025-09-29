@@ -170,7 +170,7 @@ export default function UploadPage() {
                       onClick={() => setFormData(prev => ({ ...prev, category: 'men' }))}
                       className="flex-1"
                     >
-                      Men's Design
+                      Men&apos;s Design
                     </Button>
                     <Button
                       type="button"
@@ -178,7 +178,7 @@ export default function UploadPage() {
                       onClick={() => setFormData(prev => ({ ...prev, category: 'women' }))}
                       className="flex-1"
                     >
-                      Women's Design
+                      Women&apos;s Design
                     </Button>
                   </div>
                 </div>
