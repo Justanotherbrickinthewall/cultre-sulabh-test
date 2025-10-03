@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateImageStatus } from '@/lib/db';
+import { updateCollectionStatusByImageId } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -12,7 +12,6 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Check authentication
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json(
@@ -33,9 +32,9 @@ export async function PUT(
     }
 
     const { status } = validationResult.data;
-    const image = await updateImageStatus(id, status);
+    const images = await updateCollectionStatusByImageId(id, status);
 
-    return NextResponse.json({ success: true, data: image });
+    return NextResponse.json({ success: true, data: images });
   } catch (error) {
     console.error('Error updating image status:', error);
     return NextResponse.json(

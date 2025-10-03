@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:https": "next dev --turbopack --experimental-https --experimental-https-key ./cert.key --experimental-https-cert ./cert.crt",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
@@ -29,6 +30,7 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
+    "uuid": "^13.0.0",
     "zod": "^4.1.11"
   },
   "devDependencies": {
@@ -38,6 +40,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
+    "mkcert": "^3.2.0",
     "typescript": "^5"
   }
 }

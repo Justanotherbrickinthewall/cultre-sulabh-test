@@ -23,6 +23,8 @@ export function ImageCropper({ image, onCrop, onBack }: ImageCropperProps) {
     y: 10,
   });
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const getCroppedImg = async (): Promise<Blob | null> => {
     if (!completedCrop || !imgRef.current) {
@@ -63,9 +65,38 @@ export function ImageCropper({ image, onCrop, onBack }: ImageCropperProps) {
   };
 
   const handleCropComplete = async () => {
-    const croppedBlob = await getCroppedImg();
-    if (croppedBlob) {
-      onCrop(croppedBlob);
+    try {
+      setIsProcessing(true);
+      setError(null);
+      
+      console.log('Starting crop process...');
+      console.log('Completed crop:', completedCrop);
+      console.log('Image ref:', imgRef.current);
+      
+      if (!completedCrop) {
+        setError('Please select an area to crop');
+        return;
+      }
+      
+      if (!imgRef.current) {
+        setError('Image not loaded yet');
+        return;
+      }
+      
+      const croppedBlob = await getCroppedImg();
+      console.log('Cropped blob:', croppedBlob);
+      
+      if (croppedBlob) {
+        console.log('Calling onCrop with blob size:', croppedBlob.size);
+        onCrop(croppedBlob);
+      } else {
+        setError('Failed to crop image');
+      }
+    } catch (err) {
+      console.error('Crop error:', err);
+      setError('Failed to process crop: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -104,14 +135,20 @@ export function ImageCropper({ image, onCrop, onBack }: ImageCropperProps) {
           <p>Your design will be cropped to a square format</p>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+
         <div className="flex gap-2">
-          <Button variant="outline" onClick={onBack} className="flex-1">
+          <Button variant="outline" onClick={onBack} className="flex-1" disabled={isProcessing}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retake Photo
           </Button>
-          <Button onClick={handleCropComplete} className="flex-1">
+          <Button onClick={handleCropComplete} className="flex-1" disabled={isProcessing}>
             <CropIcon className="w-4 h-4 mr-2" />
-            Crop & Continue
+            {isProcessing ? 'Processing...' : 'Crop & Continue'}
           </Button>
         </div>
       </CardContent>

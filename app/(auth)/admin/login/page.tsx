@@ -43,9 +43,12 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 flex items-center justify-center px-4">
+      <Card className="w-full max-w-md shadow-xl">
+        <CardHeader className="text-center space-y-4">
+          <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto">
+            <LogIn className="w-8 h-8 text-blue-600" />
+          </div>
           <CardTitle className="text-3xl font-bold text-gray-900">
             Admin Login
           </CardTitle>
@@ -88,14 +91,11 @@ export default function AdminLogin() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
               {loading ? (
                 'Signing in...'
               ) : (
-                <>
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Sign In
-                </>
+                'Admin Login'
               )}
             </Button>
           </form>

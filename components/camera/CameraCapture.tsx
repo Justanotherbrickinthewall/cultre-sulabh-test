@@ -13,82 +13,126 @@ interface CameraCaptureProps {
 export function CameraCapture({ onCapture, onBack }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isCapturing, setIsCapturing] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const [isCaptureProcessing, setIsCaptureProcessing] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+      });
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsVideoReady(false);
+  }, []);
 
   const startCamera = useCallback(async () => {
     try {
-      setError(null);
+      // Stop any existing stream first
+      stopCamera();
       
+      setError(null);
+      setIsInitializing(true);
+      setIsVideoReady(false);
+
+      // Request camera access with specified constraints
       const constraints: MediaStreamConstraints = {
         video: {
-          facingMode: facingMode,
+          facingMode,
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
         audio: false,
       };
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+
       if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
+        videoRef.current.srcObject = stream;
+        
+        // Wait for video to be ready
+        await new Promise<void>((resolve) => {
+          if (!videoRef.current) return;
+          
+          const handleCanPlay = () => {
+            if (videoRef.current) {
+              videoRef.current.removeEventListener('canplay', handleCanPlay);
+              resolve();
+            }
+          };
+          
+          videoRef.current.addEventListener('canplay', handleCanPlay);
+        });
+
         await videoRef.current.play();
+        setIsVideoReady(true);
       }
-      
-      setStream(mediaStream);
     } catch (err) {
-      console.error('Error accessing camera:', err);
+      console.error('Camera initialization error:', err);
       setError('Could not access camera. Please check permissions and try again.');
+    } finally {
+      setIsInitializing(false);
     }
-  }, [facingMode]);
+  }, [facingMode, stopCamera]);
 
-  const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
-  }, [stream]);
-
+  // Initialize camera on mount and cleanup on unmount
   useEffect(() => {
     startCamera();
     return () => {
       stopCamera();
     };
-  }, [facingMode, startCamera, stopCamera]);
+  }, [startCamera, stopCamera]);
 
-  const captureImage = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    setIsCapturing(true);
-    
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    if (!context) return;
-
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    // Draw video frame to canvas
-    context.drawImage(video, 0, 0);
-
-    // Convert to data URL
-    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    
-    stopCamera();
-    onCapture(imageDataUrl);
-  };
-
-  const switchCamera = () => {
-    stopCamera();
+  // Handle camera switch
+  const handleSwitchCamera = useCallback(() => {
     setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
-  };
+  }, []);
 
+  // Handle capture
+  const handleCapture = useCallback(async () => {
+    if (!videoRef.current || !canvasRef.current || !isVideoReady || isCaptureProcessing) return;
+
+    try {
+      setIsCaptureProcessing(true);
+
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+
+      if (!context) {
+        throw new Error('Could not get canvas context');
+      }
+
+      // Set canvas size to match video dimensions
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Draw the current frame to canvas
+      context.drawImage(video, 0, 0);
+
+      // Get the image data
+      const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+      // Clear processing state and notify parent
+      setIsCaptureProcessing(false);
+      onCapture(imageDataUrl);
+
+    } catch (err) {
+      console.error('Capture error:', err);
+      setError('Failed to capture image. Please try again.');
+      setIsCaptureProcessing(false);
+    }
+  }, [isVideoReady, isCaptureProcessing, onCapture]);
+
+  // Render error state
   if (error) {
     return (
       <Card className="w-full max-w-md mx-auto">
@@ -122,52 +166,77 @@ export function CameraCapture({ onCapture, onBack }: CameraCaptureProps) {
             muted
             style={{ maxHeight: '70vh' }}
           />
-          
-          {/* Corner Guides for Paper Detection */}
-          <div className="absolute inset-4 border-2 border-white border-dashed opacity-50 pointer-events-none">
-            <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-white"></div>
-            <div className="absolute top-0 right-0 w-8 h-8 border-r-4 border-t-4 border-white"></div>
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-l-4 border-b-4 border-white"></div>
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-white"></div>
-          </div>
 
-          {/* Overlay Instructions */}
-          <div className="absolute top-4 left-4 right-4">
-            <div className="bg-black bg-opacity-50 text-white px-3 py-2 rounded-lg text-sm">
-              Position your drawing within the guides and ensure good lighting
+          {/* Loading State */}
+          {isInitializing && (
+            <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+              <div className="text-white text-center">
+                <Camera className="w-16 h-16 mx-auto mb-4 animate-pulse" />
+                <p className="text-lg font-semibold">Starting camera...</p>
+                <p className="text-sm opacity-75 mt-2">Please allow camera access when prompted</p>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Controls */}
-          <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onBack}
-              className="bg-white/20 border-white/30 text-white hover:bg-white/30"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
+          {/* Processing State */}
+          {isCaptureProcessing && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <div className="text-white text-center">
+                <div className="w-16 h-16 mx-auto mb-4 border-4 border-white border-t-transparent rounded-full animate-spin" />
+                <p className="text-lg font-semibold">Processing...</p>
+              </div>
+            </div>
+          )}
 
-            <Button
-              onClick={captureImage}
-              disabled={isCapturing}
-              className="bg-white text-black hover:bg-gray-100 px-8 py-3"
-            >
-              <Camera className="w-5 h-5 mr-2" />
-              {isCapturing ? 'Capturing...' : 'Capture'}
-            </Button>
+          {/* Camera Guide */}
+          {isVideoReady && !isCaptureProcessing && (
+            <>
+              <div className="absolute inset-4 border-2 border-white border-dashed opacity-50 pointer-events-none">
+                <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-white"></div>
+                <div className="absolute top-0 right-0 w-8 h-8 border-r-4 border-t-4 border-white"></div>
+                <div className="absolute bottom-0 left-0 w-8 h-8 border-l-4 border-b-4 border-white"></div>
+                <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-white"></div>
+              </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={switchCamera}
-              className="bg-white/20 border-white/30 text-white hover:bg-white/30"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </Button>
-          </div>
+              <div className="absolute top-4 left-4 right-4">
+                <div className="bg-black bg-opacity-50 text-white px-3 py-2 rounded-lg text-sm">
+                  Position your drawing within the guides and ensure good lighting
+                </div>
+              </div>
+
+              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onBack}
+                  disabled={isCaptureProcessing}
+                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+
+                <Button
+                  onClick={handleCapture}
+                  disabled={!isVideoReady || isCaptureProcessing}
+                  className="bg-white text-black hover:bg-gray-100 px-8 py-3"
+                >
+                  <Camera className="w-5 h-5 mr-2" />
+                  {isCaptureProcessing ? 'Processing...' : 'Capture'}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSwitchCamera}
+                  disabled={isCaptureProcessing}
+                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Hidden canvas for capture */}

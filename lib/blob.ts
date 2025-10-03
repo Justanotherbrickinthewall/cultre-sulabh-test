@@ -11,6 +11,7 @@ export async function uploadImage(file: File, filename: string): Promise<string>
   try {
     const blob = await put(filename, file, {
       access: 'public',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
     });
     
     return blob.url;
