@@ -52,7 +52,7 @@ export default function UploadPage() {
     setUploadState(prev => ({ ...prev, step: 'upload-designs', error: null }));
   };
 
-  const startDesignCapture = (category: 'men' | 'women' | 'others', customName?: string) => {
+  const startDesignCapture = (category: 'men' | 'women' | 'others') => {
     setUploadState(prev => ({
       ...prev,
       currentDesignCategory: category,
@@ -79,10 +79,8 @@ export default function UploadPage() {
     try {
       let custom_category_name: string | undefined;
       if (uploadState.currentDesignCategory === 'others') {
-        custom_category_name = prompt('Please name this design category:');
-        if (!custom_category_name) {
-          custom_category_name = 'Custom Design';
-        }
+        const categoryName = prompt('Please name this design category:');
+        custom_category_name = categoryName || 'Custom Design';
       }
 
       const newDesign: DesignUpload = {
@@ -282,7 +280,7 @@ export default function UploadPage() {
           Capture Your Designs
         </h2>
         <p className="text-gray-600">
-          Take photos of your designs. Men's and Women's designs are required. ✨
+          Take photos of your designs. Men&apos;s and Women&apos;s designs are required. ✨
         </p>
       </div>
 
@@ -293,7 +291,7 @@ export default function UploadPage() {
             <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
               <span className="text-white font-bold">👔</span>
             </div>
-            <div className="flex-1">Men's Design</div>
+            <div className="flex-1">Men&apos;s Design</div>
             <Badge variant="default" className="bg-blue-500 rounded-full px-3">Required</Badge>
           </CardTitle>
         </CardHeader>
@@ -333,7 +331,7 @@ export default function UploadPage() {
               className="w-full h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold"
             >
               <Camera className="w-5 h-5 mr-2" />
-              Take Photo - Men's Design
+              Take Photo - Men&apos;s Design
             </Button>
           )}
         </CardContent>
@@ -346,7 +344,7 @@ export default function UploadPage() {
             <div className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center">
               <span className="text-white font-bold">👗</span>
             </div>
-            <div className="flex-1">Women's Design</div>
+            <div className="flex-1">Women&apos;s Design</div>
             <Badge variant="default" className="bg-pink-500 rounded-full px-3">Required</Badge>
           </CardTitle>
         </CardHeader>
@@ -386,7 +384,7 @@ export default function UploadPage() {
               className="w-full h-14 bg-pink-500 hover:bg-pink-600 text-white rounded-xl font-semibold"
             >
               <Camera className="w-5 h-5 mr-2" />
-              Take Photo - Women's Design
+              Take Photo - Women&apos;s Design
             </Button>
           )}
         </CardContent>
@@ -418,7 +416,7 @@ export default function UploadPage() {
                 <div className="flex gap-2">
                   <Button 
                     variant="outline" 
-                    onClick={() => startDesignCapture('others', design.custom_category_name)}
+                    onClick={() => startDesignCapture('others')}
                     size="sm"
                     className="rounded-xl"
                   >
@@ -487,7 +485,7 @@ export default function UploadPage() {
           Preview Your Designs
         </h2>
         <p className="text-gray-600">
-          Review your designs before uploading. We'll process them to enhance quality. ✨
+          Review your designs before uploading. We&apos;ll process them to enhance quality. ✨
         </p>
       </div>
 

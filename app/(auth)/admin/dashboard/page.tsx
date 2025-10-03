@@ -132,33 +132,11 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleStatusToggle = async (id: string, newStatus: 'selected' | 'not_selected') => {
-    try {
-      const response = await fetch(`/api/images/${id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        setImages(prev => 
-          prev.map(img => 
-            img.id === id ? { ...img, status: newStatus } : img
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error updating image status:', error);
-    }
-  };
-
-  const filteredImages = images.filter(image => (statusFilter === 'all' || image.status === statusFilter));
 
   const collections = images.reduce<Record<string, { collection_name?: string; collection_updated_at?: string; creator_name: string; created_at: string; items: Image[] }>>((acc, img) => {
-    const key = (img as any).collection_id || 'ungrouped';
+    const key = img.collection_id || 'ungrouped';
     if (!acc[key]) {
-      acc[key] = { collection_name: (img as any).collection_name, collection_updated_at: (img as any).collection_updated_at, creator_name: img.creator_name, created_at: img.created_at, items: [] };
+      acc[key] = { collection_name: img.collection_name, collection_updated_at: img.collection_updated_at, creator_name: img.creator_name, created_at: img.created_at, items: [] };
     }
     acc[key].items.push(img);
     return acc;

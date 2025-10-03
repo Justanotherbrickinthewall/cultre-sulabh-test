@@ -2,6 +2,8 @@ export interface Image {
   collection_id: string;
   id: string;
   image_url: string;
+  collection_name?: string;
+  collection_updated_at?: string;
   creator_name: string;
   creator_email?: string;
   creator_phone?: string;
