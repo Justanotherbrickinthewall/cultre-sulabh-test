@@ -14,10 +14,7 @@ interface DesignCardProps {
   designs: DesignUpload[];
   onCapture: () => void;
   onRemove: (index: number) => void;
-  gradientColors: {
-    from: string;
-    to: string;
-  };
+  // Removed gradientColors as we're using category directly for styling
 }
 
 export function DesignCard({
@@ -28,21 +25,46 @@ export function DesignCard({
   designs,
   onCapture,
   onRemove,
-  gradientColors,
+  // gradientColors removed
 }: DesignCardProps) {
   const categoryDesigns = designs.filter(d => d.category === category);
   const mainDesign = category !== 'others' ? categoryDesigns[0] : undefined;
 
   return (
-    <Card className={`rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-${gradientColors.from}-100`}>
-      <CardHeader className={`bg-gradient-to-r from-${gradientColors.from}-50 to-${gradientColors.to}-50 rounded-t-3xl`}>
+    <Card 
+      className={`rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 ${
+        category === 'men' ? 'border-blue-100' : 
+        category === 'women' ? 'border-pink-100' : 
+        'border-purple-100'
+      }`}
+    >
+      <CardHeader 
+        className={`bg-gradient-to-r rounded-t-3xl ${
+          category === 'men' ? 'from-blue-50 to-blue-50' :
+          category === 'women' ? 'from-pink-50 to-pink-50' :
+          'from-purple-50 to-purple-50'
+        }`}
+      >
         <CardTitle className="flex items-center gap-3 text-xl">
-          <div className={`w-10 h-10 bg-${gradientColors.from}-500 rounded-full flex items-center justify-center`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+            category === 'men' ? 'bg-blue-500' :
+            category === 'women' ? 'bg-pink-500' :
+            'bg-purple-500'
+          }`}>
             <span className="text-white font-bold">{emoji}</span>
           </div>
           <div className="flex-1">{title}</div>
           {isRequired ? (
-            <Badge variant="default" className={`bg-${gradientColors.from}-500 rounded-full px-3`}>Required</Badge>
+            <Badge 
+              variant="default" 
+              className={`rounded-full px-3 ${
+                category === 'men' ? 'bg-blue-500' :
+                category === 'women' ? 'bg-pink-500' :
+                'bg-purple-500'
+              }`}
+            >
+              Required
+            </Badge>
           ) : (
             <Badge variant="secondary" className="rounded-full px-3">Optional</Badge>
           )}
@@ -83,7 +105,11 @@ export function DesignCard({
           ) : (
             <Button 
               onClick={onCapture}
-              className={`w-full h-14 bg-${gradientColors.from}-500 hover:bg-${gradientColors.from}-600 text-white rounded-xl font-semibold`}
+              className={`w-full h-14 text-white rounded-xl font-semibold ${
+                category === 'men' ? 'bg-blue-500 hover:bg-blue-600' :
+                category === 'women' ? 'bg-pink-500 hover:bg-pink-600' :
+                'bg-purple-500 hover:bg-purple-600'
+              }`}
             >
               <Camera className="w-5 h-5 mr-2" />
               Take Photo - {title}

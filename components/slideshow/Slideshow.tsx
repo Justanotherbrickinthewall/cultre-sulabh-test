@@ -58,20 +58,14 @@ export function Slideshow({ images, category }: SlideshowProps) {
 
   const currentImage = images[currentIndex];
 
-  const categoryColors = {
-    men: {
-      primary: 'from-blue-600 to-indigo-700',
-      secondary: 'from-blue-900 via-indigo-900 to-purple-900',
-      accent: 'blue-400'
-    },
-    women: {
-      primary: 'from-purple-600 to-pink-700',
-      secondary: 'from-purple-900 via-pink-900 to-rose-900',
-      accent: 'pink-400'
-    }
-  };
+  // Using direct class names instead of dynamic construction
+  const getColorClasses = (category: 'men' | 'women') => ({
+    primary: category === 'men' ? 'from-blue-600 to-indigo-700' : 'from-purple-600 to-pink-700',
+    secondary: category === 'men' ? 'from-blue-900 via-indigo-900 to-purple-900' : 'from-purple-900 via-pink-900 to-rose-900',
+    accent: category === 'men' ? 'bg-blue-400' : 'bg-pink-400'
+  });
 
-  const colors = categoryColors[category];
+  const colors = getColorClasses(category);
 
   return (
     <div 
@@ -151,7 +145,7 @@ export function Slideshow({ images, category }: SlideshowProps) {
                 onClick={() => setCurrentIndex(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentIndex
-                    ? `bg-${colors.accent} scale-125`
+                    ? `${colors.accent} scale-125`
                     : 'bg-white bg-opacity-40 hover:bg-opacity-60'
                 }`}
               />
@@ -163,7 +157,7 @@ export function Slideshow({ images, category }: SlideshowProps) {
             <div className="w-full bg-white bg-opacity-20 rounded-full h-1">
               <motion.div
                 key={currentIndex}
-                className={`h-full bg-${colors.accent} rounded-full`}
+                className={`h-full ${colors.accent} rounded-full`}
                 initial={{ width: 0 }}
                 animate={{ width: '100%' }}
                 transition={{ duration: 8, ease: 'linear' }}
