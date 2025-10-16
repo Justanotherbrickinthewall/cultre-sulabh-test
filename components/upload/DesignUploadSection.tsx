@@ -50,7 +50,6 @@ export function DesignUploadSection({
         designs={designs}
         onCapture={() => onStartCapture('men')}
         onRemove={onRemoveDesign}
-        gradientColors={{ from: 'blue', to: 'cyan' }}
       />
 
       <DesignCard
@@ -61,7 +60,6 @@ export function DesignUploadSection({
         designs={designs}
         onCapture={() => onStartCapture('women')}
         onRemove={onRemoveDesign}
-        gradientColors={{ from: 'pink', to: 'purple' }}
       />
 
       <DesignCard
@@ -71,7 +69,6 @@ export function DesignUploadSection({
         designs={designs}
         onCapture={() => onStartCapture('others')}
         onRemove={onRemoveDesign}
-        gradientColors={{ from: 'purple', to: 'indigo' }}
       />
 
       {error && (
