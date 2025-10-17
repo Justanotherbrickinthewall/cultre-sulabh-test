@@ -16,6 +16,7 @@ export default function UploadPage() {
     updateUserDetails,
     startDesignCapture,
     handleImageCapture,
+    handleGalleryUpload,
     handleImageCrop,
     handleImageEnhance,
     removeDesign,
@@ -23,6 +24,7 @@ export default function UploadPage() {
     handleUpload,
     reset,
     cancelCapture,
+    cancelEnhancement,
   } = useUploadState();
 
   const renderStep = () => {
@@ -41,6 +43,7 @@ export default function UploadPage() {
           <DesignUploadSection
             designs={state.designs}
             onStartCapture={startDesignCapture}
+            onGalleryUpload={handleGalleryUpload}
             onRemoveDesign={removeDesign}
             onBack={() => state.step = 'user-details'}
             onPreview={handlePreview}
@@ -75,7 +78,7 @@ export default function UploadPage() {
       <ImageEnhancer
         image={state.croppedImageBlob}
         onComplete={handleImageEnhance}
-        onBack={() => state.croppedImageBlob = null}
+        onBack={cancelEnhancement}
       />
     );
   }

@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Camera, X, Plus } from 'lucide-react';
+import { Camera, X, Plus, Upload } from 'lucide-react';
+import * as React from 'react';
 import { DesignUpload } from '@/types/upload';
 
 interface DesignCardProps {
@@ -13,8 +14,21 @@ interface DesignCardProps {
   isRequired?: boolean;
   designs: DesignUpload[];
   onCapture: () => void;
+  onGalleryUpload: (file: File) => void;
   onRemove: (index: number) => void;
-  // Removed gradientColors as we're using category directly for styling
+}
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+function validateFile(file: File): string | null {
+  if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+    return 'Please select a valid image file (JPEG, PNG, or WebP)';
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return 'File size must be less than 5MB';
+  }
+  return null;
 }
 
 export function DesignCard({
@@ -24,11 +38,28 @@ export function DesignCard({
   isRequired = false,
   designs,
   onCapture,
+  onGalleryUpload,
   onRemove,
-  // gradientColors removed
 }: DesignCardProps) {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const categoryDesigns = designs.filter(d => d.category === category);
-  const mainDesign = category !== 'others' ? categoryDesigns[0] : undefined;
+  const mainDesign = categoryDesigns[0];
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const error = validateFile(file);
+    if (error) {
+      alert(error);
+      return;
+    }
+
+    onGalleryUpload(file);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   return (
     <Card 
@@ -53,7 +84,12 @@ export function DesignCard({
           }`}>
             <span className="text-white font-bold">{emoji}</span>
           </div>
-          <div className="flex-1">{title}</div>
+          <div className="flex-1">
+            {title}
+            {category === 'others' && mainDesign?.custom_category_name && (
+              <span className="text-gray-600 ml-2">({mainDesign.custom_category_name})</span>
+            )}
+          </div>
           {isRequired ? (
             <Badge 
               variant="default" 
@@ -71,38 +107,37 @@ export function DesignCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6">
-        {category !== 'others' ? (
-          // Men's and Women's designs
-          mainDesign ? (
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <img 
-                  src={URL.createObjectURL(mainDesign.imageBlob)} 
-                  alt={`${title} design`}
-                  className="w-40 h-40 object-cover rounded-2xl shadow-md"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={onCapture}
-                  size="sm"
-                  className="rounded-xl"
-                >
-                  <Camera className="w-4 h-4 mr-2" />
-                  Retake
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => onRemove(designs.findIndex(d => d === mainDesign))}
-                  size="sm"
-                  className="rounded-xl"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
+        {mainDesign ? (
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <img 
+                src={URL.createObjectURL(mainDesign.imageBlob)} 
+                alt={`${title} design`}
+                className="w-40 h-40 object-cover rounded-2xl shadow-md"
+              />
             </div>
-          ) : (
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={onCapture}
+                size="sm"
+                className="rounded-xl"
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Retake
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => onRemove(designs.findIndex(d => d === mainDesign))}
+                size="sm"
+                className="rounded-xl"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
             <Button 
               onClick={onCapture}
               className={`w-full h-14 text-white rounded-xl font-semibold ${
@@ -114,49 +149,22 @@ export function DesignCard({
               <Camera className="w-5 h-5 mr-2" />
               Take Photo - {title}
             </Button>
-          )
-        ) : (
-          // Other designs section
-          <div className="space-y-4">
-            {categoryDesigns.map((design, index) => (
-              <div key={index} className="flex items-center gap-4 p-4 border-2 border-purple-100 rounded-2xl bg-purple-50/30">
-                <div className="flex-1">
-                  <p className="font-semibold text-purple-900 mb-2">{design.custom_category_name}</p>
-                  <img 
-                    src={URL.createObjectURL(design.imageBlob)} 
-                    alt={design.custom_category_name}
-                    className="w-28 h-28 object-cover rounded-xl shadow-sm"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={onCapture}
-                    size="sm"
-                    className="rounded-xl"
-                  >
-                    <Camera className="w-4 h-4 mr-2" />
-                    Retake
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => onRemove(designs.findIndex(d => d === design))}
-                    size="sm"
-                    className="rounded-xl"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-            
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept={ALLOWED_FILE_TYPES.join(',')}
+              className="hidden"
+            />
+
             <Button 
-              onClick={onCapture}
               variant="outline"
-              className="w-full h-12 border-2 border-purple-200 hover:bg-purple-50 text-purple-700 rounded-xl font-semibold"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full h-14 border-2 rounded-xl font-semibold"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              Add Another Design
+              <Upload className="w-5 h-5 mr-2" />
+              Upload from Gallery
             </Button>
           </div>
         )}

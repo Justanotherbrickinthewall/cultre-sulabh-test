@@ -121,11 +121,13 @@ export function ImageEnhancer({ image, onComplete, onBack }: ImageEnhancerProps)
     <div className="fixed inset-0 bg-black">
       {/* Main Image Display */}
       <div className="relative w-full h-full">
-        <img
-          src={currentImage}
-          alt="Image being enhanced"
-          className="w-full h-full object-contain"
-        />
+        {currentImage && (
+          <img
+            src={currentImage}
+            alt="Image being enhanced"
+            className="w-full h-full object-contain"
+          />
+        )}
 
         {/* Processing Overlay */}
         {isProcessing && (

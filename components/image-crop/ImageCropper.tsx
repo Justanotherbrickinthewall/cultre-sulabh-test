@@ -25,8 +25,16 @@ export function ImageCropper({ image, onCrop, onBack }: ImageCropperProps) {
   const [error, setError] = useState<string | null>(null);
 
   const getCroppedImg = async (): Promise<Blob | null> => {
-    if (!completedCrop || !imgRef.current) {
-      console.error('Missing crop or image ref');
+    const currentCrop = completedCrop || {
+      x: crop.x,
+      y: crop.y,
+      width: imgRef.current?.width || 0,
+      height: imgRef.current?.height || 0,
+      unit: 'px'
+    };
+
+    if (!imgRef.current) {
+      console.error('Missing image ref');
       return null;
     }
 
@@ -42,17 +50,17 @@ export function ImageCropper({ image, onCrop, onBack }: ImageCropperProps) {
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
 
-    canvas.width = completedCrop.width * scaleX;
-    canvas.height = completedCrop.height * scaleY;
+    canvas.width = currentCrop.width * scaleX;
+    canvas.height = currentCrop.height * scaleY;
 
     ctx.imageSmoothingQuality = 'high';
 
     ctx.drawImage(
       image,
-      completedCrop.x * scaleX,
-      completedCrop.y * scaleY,
-      completedCrop.width * scaleX,
-      completedCrop.height * scaleY,
+      currentCrop.x * scaleX,
+      currentCrop.y * scaleY,
+      currentCrop.width * scaleX,
+      currentCrop.height * scaleY,
       0,
       0,
       canvas.width,
@@ -79,11 +87,16 @@ export function ImageCropper({ image, onCrop, onBack }: ImageCropperProps) {
       setIsProcessing(true);
       setError(null);
       
-      if (!completedCrop || completedCrop.width === 0 || completedCrop.height === 0) {
-        setError('Please select an area to crop');
-        return;
-      }
+      // Use either completedCrop or initial crop values
+      const cropToUse = completedCrop || {
+        unit: 'px',
+        x: crop.x,
+        y: crop.y,
+        width: imgRef.current?.width || 0,
+        height: imgRef.current?.height || 0,
+      };
       
+      setCompletedCrop(cropToUse);
       const croppedBlob = await getCroppedImg();
       
       if (!croppedBlob) {

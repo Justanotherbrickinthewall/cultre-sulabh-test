@@ -63,6 +63,28 @@ export function useUploadState() {
     }));
   };
 
+  const handleGalleryUpload = async (category: 'men' | 'women' | 'others', file: File) => {
+    setState(prev => ({
+      ...prev,
+      currentDesignCategory: category,
+      currentDesignIndex: prev.designs.length,
+      error: null,
+    }));
+
+    // Convert File to data URL for the cropper
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      if (result && typeof result === 'string') {
+        setState(prev => ({
+          ...prev,
+          capturedImageData: result,
+        }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleImageCrop = (croppedBlob: Blob) => {
     setState(prev => ({
       ...prev,
@@ -189,12 +211,20 @@ export function useUploadState() {
     }));
   };
 
+  const cancelEnhancement = () => {
+    setState(prev => ({
+      ...prev,
+      croppedImageBlob: null,
+    }));
+  };
+
   return {
     state,
     handleUserDetailsSubmit,
     updateUserDetails,
     startDesignCapture,
     handleImageCapture,
+    handleGalleryUpload,
     handleImageCrop,
     handleImageEnhance,
     removeDesign,
@@ -202,6 +232,7 @@ export function useUploadState() {
     handleUpload,
     reset,
     cancelCapture,
+    cancelEnhancement,
     canProceedToPreview,
   };
 }

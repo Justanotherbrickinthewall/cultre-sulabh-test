@@ -8,6 +8,7 @@ import { DesignUpload } from '@/types/upload';
 interface DesignUploadSectionProps {
   designs: DesignUpload[];
   onStartCapture: (category: 'men' | 'women' | 'others') => void;
+  onGalleryUpload: (category: 'men' | 'women' | 'others', file: File) => void;
   onRemoveDesign: (index: number) => void;
   onBack: () => void;
   onPreview: () => void;
@@ -17,6 +18,7 @@ interface DesignUploadSectionProps {
 export function DesignUploadSection({
   designs,
   onStartCapture,
+  onGalleryUpload,
   onRemoveDesign,
   onBack,
   onPreview,
@@ -49,6 +51,7 @@ export function DesignUploadSection({
         isRequired
         designs={designs}
         onCapture={() => onStartCapture('men')}
+        onGalleryUpload={(file) => onGalleryUpload('men', file)}
         onRemove={onRemoveDesign}
       />
 
@@ -59,6 +62,7 @@ export function DesignUploadSection({
         isRequired
         designs={designs}
         onCapture={() => onStartCapture('women')}
+        onGalleryUpload={(file) => onGalleryUpload('women', file)}
         onRemove={onRemoveDesign}
       />
 
@@ -68,6 +72,7 @@ export function DesignUploadSection({
         category="others"
         designs={designs}
         onCapture={() => onStartCapture('others')}
+        onGalleryUpload={(file) => onGalleryUpload('others', file)}
         onRemove={onRemoveDesign}
       />
 
