@@ -12,9 +12,9 @@ interface CollectionSlideshowProps {
 export function CollectionSlideshow({ collections }: CollectionSlideshowProps) {
   // Randomly distribute collections
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
-  const [progress, setProgress] = useState(0); // 0..1 progress of current cycle
-  const lastChangeRef = useRef<number>(Date.now());
-  const CYCLE_DURATION_MS = 10000;
+  const CYCLE_DURATION_MS = 5000;
+  const [cycleStartMs, setCycleStartMs] = useState<number>(Date.now());
+  const rotationTimeoutRef = useRef<number | null>(null);
 
   // Compute block width per collection dynamically to fit 3 tiles (including borders and inner gaps)
   // Tile sizes after 1.2x: base 192px, md 230px; border 8px; inner gap 16px; 3 tiles per block
@@ -46,8 +46,7 @@ export function CollectionSlideshow({ collections }: CollectionSlideshowProps) {
     };
   }, []);
 
-
-  // Helper to rotate selection and reset progress
+  // Helper to rotate selection
   const rotateSelection = () => {
     if (collections.length === 0) return;
     const pool = selectedCollectionId
@@ -56,8 +55,7 @@ export function CollectionSlideshow({ collections }: CollectionSlideshowProps) {
     const source = pool.length > 0 ? pool : collections;
     const random = source[Math.floor(Math.random() * source.length)];
     setSelectedCollectionId(random.id);
-    lastChangeRef.current = Date.now();
-    setProgress(0);
+    setCycleStartMs(Date.now());
   };
 
   // Initialize selected collection once data is ready
@@ -67,24 +65,55 @@ export function CollectionSlideshow({ collections }: CollectionSlideshowProps) {
     }
   }, [collections, selectedCollectionId]);
 
-  // Every 10s pick a new selected collection id
+  // Schedule next rotation aligned to the cycle start
   useEffect(() => {
-    if (collections.length === 0) return;
-    const interval = setInterval(() => {
+    if (rotationTimeoutRef.current) {
+      clearTimeout(rotationTimeoutRef.current);
+    }
+    if (!selectedCollectionId || collections.length === 0) return;
+    rotationTimeoutRef.current = window.setTimeout(() => {
       rotateSelection();
     }, CYCLE_DURATION_MS);
-    return () => clearInterval(interval);
-  }, [collections]);
+    return () => {
+      if (rotationTimeoutRef.current) {
+        clearTimeout(rotationTimeoutRef.current);
+      }
+    };
+  }, [selectedCollectionId, collections]);
 
-  // Smooth progress updater (0..1) for the progress marker
-  useEffect(() => {
-    const tick = setInterval(() => {
-      const elapsed = Date.now() - lastChangeRef.current;
-      const pct = Math.max(0, Math.min(1, elapsed / CYCLE_DURATION_MS));
-      setProgress(pct);
-    }, 50);
-    return () => clearInterval(tick);
-  }, []);
+  // Progress ring isolated to avoid re-rendering the whole slideshow
+  function ProgressRing({ durationMs, startMs }: { durationMs: number; startMs: number }) {
+    const [progress, setProgress] = useState(0);
+    const startRef = useRef<number>(startMs);
+
+    useEffect(() => {
+      startRef.current = startMs;
+      setProgress(0);
+    }, [startMs]);
+
+    useEffect(() => {
+      const tick = setInterval(() => {
+        const elapsed = Date.now() - startRef.current;
+        const pct = Math.max(0, Math.min(1, elapsed / durationMs));
+        setProgress(pct);
+      }, 50);
+      return () => clearInterval(tick);
+    }, [durationMs]);
+
+    return (
+      <div className="fixed top-4 right-4 z-30">
+        <div className="relative w-10 h-10">
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: `conic-gradient(#d79828 ${progress * 360}deg, rgba(0,0,0,0.2) 0deg)`,
+            }}
+          />
+          <div className="absolute inset-2 rounded-full" />
+        </div>
+      </div>
+    );
+  }
 
   // Split into two columns dynamically: 0..half and half..end
   const {topCollections, bottomCollections} = useMemo(() => {
@@ -136,17 +165,7 @@ export function CollectionSlideshow({ collections }: CollectionSlideshowProps) {
       </div>
 
       {/* Progress Marker (top-right) */}
-      <div className="fixed top-4 right-4 z-30">
-        <div className="relative w-10 h-10">
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: `conic-gradient(#d79828 ${progress * 360}deg, rgba(0,0,0,0.2) 0deg)`,
-            }}
-          />
-          <div className="absolute inset-2 rounded-full" />
-        </div>
-      </div>
+      <ProgressRing durationMs={CYCLE_DURATION_MS} startMs={cycleStartMs} />
     </div>
   );
 }

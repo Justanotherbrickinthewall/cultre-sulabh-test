@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import { Collection } from '@/types';
@@ -12,7 +12,7 @@ interface CollectionSliderProps {
   metaPlacement?: 'top' | 'bottom';
 }
 
-export function CollectionSlider({
+function CollectionSliderInner({
   collections,
   selectedCollectionId,
   blockWidth = 672,
@@ -102,5 +102,7 @@ export function CollectionSlider({
     </div>
   );
 }
+
+export const CollectionSlider = memo(CollectionSliderInner);
 
 
