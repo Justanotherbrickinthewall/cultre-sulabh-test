@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { CollectionSlider } from './CollectionSlider';
 import { Collection } from '@/types';
 import { Heart } from 'lucide-react';
 
@@ -10,204 +10,141 @@ interface CollectionSlideshowProps {
 }
 
 export function CollectionSlideshow({ collections }: CollectionSlideshowProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  // Randomly distribute collections
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0); // 0..1 progress of current cycle
+  const lastChangeRef = useRef<number>(Date.now());
+  const CYCLE_DURATION_MS = 10000;
 
-  // Auto-advance slides every 10 seconds
-  useEffect(() => {
-    if (!isPlaying || collections.length <= 1) return;
+  // Compute block width per collection dynamically to fit 3 tiles (including borders and inner gaps)
+  // Tile sizes after 1.2x: base 192px, md 230px; border 8px; inner gap 16px; 3 tiles per block
+  const TILE_SM = 192; // w-48
+  const TILE_MD = 230; // md:w-[230px]
+  const BORDER_PX = 8; // border-8
+  const INNER_GAP = 16; // gap-4 inside a block
+  const TILES_PER_BLOCK = 3;
 
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % collections.length);
-    }, 10000);
+  const calcBlockWidth = (tile: number) =>
+    TILES_PER_BLOCK * (tile + 2 * BORDER_PX) + (TILES_PER_BLOCK - 1) * INNER_GAP; // includes borders + inner gaps
 
-    return () => clearInterval(interval);
-  }, [isPlaying, collections.length]);
-
-  const nextSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % collections.length);
-  }, [collections.length]);
-
-  const prevSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + collections.length) % collections.length);
-  }, [collections.length]);
-
-  // Handle keyboard controls
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case ' ':
-          e.preventDefault();
-          setIsPlaying(prev => !prev);
-          break;
-        case 'ArrowRight':
-          nextSlide();
-          break;
-        case 'ArrowLeft':
-          prevSlide();
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [nextSlide, prevSlide]);
-
-  const currentCollection = collections[currentIndex];
-
-  // Get category display name
-  const getCategoryDisplay = (category: 'men' | 'women' | 'others', customName?: string) => {
-    if (category === 'others' && customName) {
-      return customName;
-    }
-    return category === 'men' ? 'Men' : category === 'women' ? 'Women' : 'Others';
+  const getViewportBlockWidth = () => {
+    if (typeof window === 'undefined') return calcBlockWidth(TILE_MD);
+    const isMd = window.matchMedia('(min-width: 768px)').matches;
+    return calcBlockWidth(isMd ? TILE_MD : TILE_SM);
   };
 
+  const [blockWidth, setBlockWidth] = useState<number>(getViewportBlockWidth());
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const update = () => setBlockWidth(getViewportBlockWidth());
+    mq.addEventListener('change', update);
+    window.addEventListener('resize', update);
+    return () => {
+      mq.removeEventListener('change', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+
+  // Helper to rotate selection and reset progress
+  const rotateSelection = () => {
+    if (collections.length === 0) return;
+    const pool = selectedCollectionId
+      ? collections.filter((c) => c.id !== selectedCollectionId)
+      : collections;
+    const source = pool.length > 0 ? pool : collections;
+    const random = source[Math.floor(Math.random() * source.length)];
+    setSelectedCollectionId(random.id);
+    lastChangeRef.current = Date.now();
+    setProgress(0);
+  };
+
+  // Initialize selected collection once data is ready
+  useEffect(() => {
+    if (collections.length > 0 && !selectedCollectionId) {
+      rotateSelection();
+    }
+  }, [collections, selectedCollectionId]);
+
+  // Every 10s pick a new selected collection id
+  useEffect(() => {
+    if (collections.length === 0) return;
+    const interval = setInterval(() => {
+      rotateSelection();
+    }, CYCLE_DURATION_MS);
+    return () => clearInterval(interval);
+  }, [collections]);
+
+  // Smooth progress updater (0..1) for the progress marker
+  useEffect(() => {
+    const tick = setInterval(() => {
+      const elapsed = Date.now() - lastChangeRef.current;
+      const pct = Math.max(0, Math.min(1, elapsed / CYCLE_DURATION_MS));
+      setProgress(pct);
+    }, 50);
+    return () => clearInterval(tick);
+  }, []);
+
+  // Split into two columns dynamically: 0..half and half..end
+  const {topCollections, bottomCollections} = useMemo(() => {
+    const half = Math.floor(collections.length / 2);
+    const top = collections.slice(0, half);
+    const bottom = collections.slice(half);
+    return { topCollections: top, bottomCollections: bottom };
+  }, [collections]);
+
+
+  if (collections.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-800 to-orange-700 relative overflow-hidden">
-      {/* Animated background pattern - quirky circles */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute w-96 h-96 rounded-full bg-yellow-400 opacity-20 blur-3xl"
-          animate={{
-            x: [0, 100, 0],
-            y: [0, 50, 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          style={{ top: '10%', left: '10%' }}
-        />
-        <motion.div
-          className="absolute w-72 h-72 rounded-full bg-blue-400 opacity-20 blur-3xl"
-          animate={{
-            x: [0, -80, 0],
-            y: [0, 80, 0],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          style={{ bottom: '10%', right: '10%' }}
-        />
+    <div className="h-screen bg-amber overflow-hidden relative">
+      {/* 3 vertical sections: 15% / 70% / 15% */}
+      <div className="relative z-10 h-full flex flex-col overflow-hidden">
+
+        {/* Slot Section (70%) */}
+        <div className="h-[100vh] px-6 flex flex-col gap-6 items-center pt-[20vh] pb-[20vh]">
+          {/* Top row - moves left */}
+          <CollectionSlider
+            collections={topCollections}
+            selectedCollectionId={selectedCollectionId}
+            blockWidth={blockWidth}
+            metaPlacement="top"
+          />
+
+          {/* Bottom row - moves right */}
+          <CollectionSlider
+            collections={bottomCollections}
+            selectedCollectionId={selectedCollectionId}
+            blockWidth={blockWidth}
+            metaPlacement="bottom"
+          />
+        </div>
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-8 py-12">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentIndex}
-            initial={{ opacity: 0, x: 1000 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -1000 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="w-full max-w-7xl"
-          >
-            {/* Collection Header */}
-            <div className="text-center mb-12">
-              <motion.h1 
-                className="text-6xl md:text-8xl font-black text-white mb-4 drop-shadow-2xl"
-                style={{
-                  textShadow: '4px 4px 0px rgba(0,0,0,0.3)',
-                  fontFamily: 'system-ui, -apple-system, sans-serif',
-                }}
-                initial={{ scale: 0.5, rotate: -10 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                {currentCollection.collection_name}
-              </motion.h1>
-              <motion.h6 
-                className="text-3xl md:text-4xl text-yellow-200 font-bold"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                by {currentCollection.creator_name}
-              </motion.h6>
-            </div>
 
-            {/* Images Grid */}
-            <div className="flex flex-row gap-8 justify-center items-start flex-wrap">
-              {currentCollection.images.map((image, idx) => (
-                <motion.div
-                  key={image.id}
-                  className="flex flex-col items-center"
-                  initial={{ opacity: 0, y: 50, rotate: -5 }}
-                  animate={{ opacity: 1, y: 0, rotate: 0 }}
-                  transition={{ duration: 0.6, delay: 0.6 + idx * 0.2 }}
-                >
-                  {/* Image Container with quirky border */}
-                  <div className="relative group">
-                    <div className="absolute -inset-2 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-3xl blur-lg opacity-75 group-hover:opacity-100 transition duration-300"></div>
-                    <div className="relative bg-white rounded-2xl p-3 shadow-2xl transform hover:scale-105 transition duration-300">
-                      <div className="w-72 h-72 md:w-80 md:h-80 rounded-xl overflow-hidden bg-gray-100">
-                        <img
-                          src={image.image_url}
-                          alt={`Design ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Category Label - quirky bubble */}
-                  <motion.div
-                    className="mt-4 bg-yellow-400 text-gray-900 px-8 py-3 rounded-full font-bold text-xl shadow-lg"
-                    style={{
-                      textShadow: '1px 1px 0px rgba(255,255,255,0.5)',
-                    }}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.4, delay: 0.8 + idx * 0.2, type: "spring", stiffness: 200 }}
-                  >
-                    {getCategoryDisplay(image.category, image.custom_category_name)}
-                  </motion.div>
-                </motion.div>
-              ))}
-            </div>
 
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Footer - Always visible at bottom right */}
-      <div className="fixed bottom-6 right-6 z-30">
-        <div className="bg-black/20 backdrop-blur-sm px-4 py-2 rounded-full">
-          <p className="text-sm md:text-base text-white/70 font-medium flex items-center gap-2">
-            Crafted with <Heart className="fill-red-400 text-red-400" size={16} /> by Cultre
+      {/* Footer - Crafted by Cultre */}
+      <div className="fixed bottom-4 right-4 z-30">
+        <div className="bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
+          <p className="text-sm text-white font-medium flex items-center gap-2">
+            Crafted with <Heart className="fill-red-400 text-red-400" size={14} /> by Cultre
           </p>
         </div>
       </div>
 
-      {/* Progress Indicators */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
-        <div className="flex items-center gap-3">
-          {collections.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`transition-all duration-300 rounded-full ${
-                index === currentIndex
-                  ? 'w-12 h-4 bg-yellow-400 shadow-lg'
-                  : 'w-4 h-4 bg-white/40 hover:bg-white/60'
-              }`}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Collection Counter */}
-      <div className="absolute top-8 right-8 z-20">
-        <div className="bg-white/20 backdrop-blur-md px-6 py-3 rounded-full">
-          <p className="text-xl text-white font-bold">
-            {currentIndex + 1} / {collections.length}
-          </p>
+      {/* Progress Marker (top-right) */}
+      <div className="fixed top-4 right-4 z-30">
+        <div className="relative w-10 h-10">
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: `conic-gradient(#d79828 ${progress * 360}deg, rgba(0,0,0,0.2) 0deg)`,
+            }}
+          />
+          <div className="absolute inset-2 rounded-full" />
         </div>
       </div>
     </div>
