@@ -17,15 +17,15 @@ interface UserDetailsFormProps {
 
 export function UserDetailsForm({ userDetails, error, onSubmit, onUpdateDetails }: UserDetailsFormProps) {
   return (
-    <Card className="w-full max-w-md mx-auto rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300">
+    <Card className="w-full max-w-md mx-auto shadow-xl hover:shadow-2xl transition-all duration-300 rounded-none">
       <CardHeader className="text-center pt-8 pb-4">
-        <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl flex items-center justify-center mb-6 mx-auto">
-          <span className="text-4xl">✨</span>
+        <div className="flex items-center justify-center mb-6 mx-auto">
+          <span className="text-6xl">✨</span>
         </div>
-        <CardTitle className="text-3xl font-bold text-gray-900 mb-2">
+        <CardTitle className="text-3xl font-bold text-navyblue mb-2">
           Share Your Designs
         </CardTitle>
-        <p className="text-gray-600">
+        <p className="text-gray-400">
           Tell us about yourself to get started
         </p>
       </CardHeader>
@@ -39,8 +39,33 @@ export function UserDetailsForm({ userDetails, error, onSubmit, onUpdateDetails 
               value={userDetails.name}
               onChange={(e) => onUpdateDetails({ name: e.target.value })}
               placeholder="Enter your name"
-              className="mt-2 h-12 rounded-xl"
+              className="mt-2 h-12 rounded-none"
               required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="collectionName" className="text-base font-semibold">Collection Name</Label>
+            <Input
+              id="collectionName"
+              type="text"
+              value={userDetails.collectionName}
+              onChange={(e) => onUpdateDetails({ collectionName: e.target.value })}
+              placeholder="e.g., Summer Collection 2024 (optional)"
+              className="mt-2 h-12 rounded-none"
+            />
+            <p className="text-xs text-gray-400 mt-1">Leave empty to use &quot;Your Name&apos;s Designs&quot;</p>
+          </div>
+
+          <div>
+            <Label htmlFor="location" className="text-base font-semibold">Location</Label>
+            <Input
+              id="location"
+              type="text"
+              value={userDetails.location}
+              onChange={(e) => onUpdateDetails({ location: e.target.value })}
+              placeholder="e.g., Mumbai, India (optional)"
+              className="mt-2 h-12 rounded-none"
             />
           </div>
 
@@ -52,7 +77,7 @@ export function UserDetailsForm({ userDetails, error, onSubmit, onUpdateDetails 
               value={userDetails.email}
               onChange={(e) => onUpdateDetails({ email: e.target.value })}
               placeholder="your.email@example.com (optional)"
-              className="mt-2 h-12 rounded-xl"
+              className="mt-2 h-12 rounded-none"
             />
           </div>
 
@@ -64,18 +89,18 @@ export function UserDetailsForm({ userDetails, error, onSubmit, onUpdateDetails 
               value={userDetails.phone}
               onChange={(e) => onUpdateDetails({ phone: e.target.value })}
               placeholder="+1 (555) 000-0000 (optional)"
-              className="mt-2 h-12 rounded-xl"
+              className="mt-2 h-12 rounded-none"
             />
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-xl">
+            <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-none">
               <AlertCircle className="w-5 h-5" />
               {error}
             </div>
           )}
 
-          <Button type="submit" className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold">
+          <Button type="submit" className="w-full h-12 bg-amber hover:bg-amber/90 text-white font-semibold shadow-lg rounded-none">
             Continue to Design Upload
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>

@@ -51,6 +51,12 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Design system colors
+        amber: "#d79828",
+        yellow: "#fee976",
+        navyblue: "#1e1e44",
+        red: "#ba2617",
+        fuchsia: "#a03a38",
       },
       borderRadius: {
         lg: "var(--radius)",

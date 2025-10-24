@@ -18,15 +18,15 @@ interface DesignCardProps {
   onRemove: (index: number) => void;
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
 
 function validateFile(file: File): string | null {
   if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-    return 'Please select a valid image file (JPEG, PNG, or WebP)';
+    return 'Please select a valid image file (JPEG, PNG, WebP, GIF, or HEIC)';
   }
   if (file.size > MAX_FILE_SIZE) {
-    return 'File size must be less than 5MB';
+    return 'File size must be less than 25MB';
   }
   return null;
 }
@@ -63,57 +63,53 @@ export function DesignCard({
 
   return (
     <Card 
-      className={`rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 ${
-        category === 'men' ? 'border-blue-100' : 
-        category === 'women' ? 'border-pink-100' : 
-        'border-purple-100'
+      className={`shadow-lg hover:shadow-xl transition-all duration-300 border-2 rounded-none ${
+        category === 'men' ? 'border-navyblue/30' : 
+        category === 'women' ? 'border-fuchsia/30' : 
+        'border-amber/30'
       }`}
     >
       <CardHeader 
-        className={`bg-gradient-to-r rounded-t-3xl ${
-          category === 'men' ? 'from-blue-50 to-blue-50' :
-          category === 'women' ? 'from-pink-50 to-pink-50' :
-          'from-purple-50 to-purple-50'
+        className={`${
+          category === 'men' ? 'bg-navyblue/5' :
+          category === 'women' ? 'bg-fuchsia/5' :
+          'bg-amber/5'
         }`}
       >
         <CardTitle className="flex items-center gap-3 text-xl">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-            category === 'men' ? 'bg-blue-500' :
-            category === 'women' ? 'bg-pink-500' :
-            'bg-purple-500'
-          }`}>
-            <span className="text-white font-bold">{emoji}</span>
+          <div className="flex items-center justify-center">
+            <span className="text-3xl">{emoji}</span>
           </div>
           <div className="flex-1">
             {title}
             {category === 'others' && mainDesign?.custom_category_name && (
-              <span className="text-gray-600 ml-2">({mainDesign.custom_category_name})</span>
+              <span className="text-gray-400 ml-2">({mainDesign.custom_category_name})</span>
             )}
           </div>
           {isRequired ? (
             <Badge 
               variant="default" 
-              className={`rounded-full px-3 ${
-                category === 'men' ? 'bg-blue-500' :
-                category === 'women' ? 'bg-pink-500' :
-                'bg-purple-500'
+              className={`px-3 rounded-none ${
+                category === 'men' ? 'bg-navyblue/80' :
+                category === 'women' ? 'bg-fuchsia/80' :
+                'bg-amber/80'
               }`}
             >
               Required
             </Badge>
           ) : (
-            <Badge variant="secondary" className="rounded-full px-3">Optional</Badge>
+            <Badge variant="secondary" className="px-3 bg-amber/20 text-navyblue rounded-none">Optional</Badge>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent className="pt-4 pb-4">
         {mainDesign ? (
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
+          <div className="space-y-3">
+            <div className="flex justify-center">
               <img 
                 src={URL.createObjectURL(mainDesign.imageBlob)} 
                 alt={`${title} design`}
-                className="w-40 h-40 object-cover rounded-2xl shadow-md"
+                className="w-32 h-32 object-cover shadow-md rounded-none"
               />
             </div>
             <div className="flex gap-2">
@@ -121,33 +117,33 @@ export function DesignCard({
                 variant="outline" 
                 onClick={onCapture}
                 size="sm"
-                className="rounded-xl"
+                className="flex-1 rounded-none"
               >
-                <Camera className="w-4 h-4 mr-2" />
+                <Camera className="w-4 h-4 mr-1" />
                 Retake
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => onRemove(designs.findIndex(d => d === mainDesign))}
                 size="sm"
-                className="rounded-xl"
+                className="rounded-none px-3"
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="flex gap-2">
             <Button 
               onClick={onCapture}
-              className={`w-full h-14 text-white rounded-xl font-semibold ${
-                category === 'men' ? 'bg-blue-500 hover:bg-blue-600' :
-                category === 'women' ? 'bg-pink-500 hover:bg-pink-600' :
-                'bg-purple-500 hover:bg-purple-600'
+              className={`flex-1 h-12 text-white font-semibold shadow-md rounded-none ${
+                category === 'men' ? 'bg-navyblue/80 hover:bg-navyblue/70' :
+                category === 'women' ? 'bg-fuchsia/80 hover:bg-fuchsia/70' :
+                'bg-amber/80 hover:bg-amber/70'
               }`}
             >
-              <Camera className="w-5 h-5 mr-2" />
-              Take Photo - {title}
+              <Camera className="w-5 h-5 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Take Photo</span>
             </Button>
 
             <input
@@ -161,10 +157,10 @@ export function DesignCard({
             <Button 
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full h-14 border-2 rounded-xl font-semibold"
+              className="flex-1 h-12 border-2 font-semibold rounded-none"
             >
-              <Upload className="w-5 h-5 mr-2" />
-              Upload from Gallery
+              <Upload className="w-5 h-5 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Upload</span>
             </Button>
           </div>
         )}

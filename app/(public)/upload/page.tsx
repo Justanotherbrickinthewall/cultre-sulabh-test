@@ -105,7 +105,7 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-yellow/10 via-amber/10 to-navyblue/10 flex items-center justify-center">
       <div className="container mx-auto px-4 py-8">
         {renderStep()}
       </div>

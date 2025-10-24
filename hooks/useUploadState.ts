@@ -5,7 +5,7 @@ import { UploadState, UserDetails, DesignUpload } from '@/types/upload';
 
 const initialState: UploadState = {
   step: 'user-details',
-  userDetails: { name: '', email: '', phone: '' },
+  userDetails: { name: '', email: '', phone: '', collectionName: '', location: '' },
   designs: [],
   currentDesignCategory: null,
   currentDesignIndex: -1,
@@ -168,6 +168,12 @@ export function useUploadState() {
         }
         if (state.userDetails.phone) {
           formData.append('creator_phone', state.userDetails.phone);
+        }
+        if (state.userDetails.collectionName) {
+          formData.append('collection_name', state.userDetails.collectionName);
+        }
+        if (state.userDetails.location) {
+          formData.append('location', state.userDetails.location);
         }
         formData.append('category', design.category);
         if (design.custom_category_name) {

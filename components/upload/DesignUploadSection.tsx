@@ -33,13 +33,13 @@ export function DesignUploadSection({
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-cyan-100 rounded-2xl flex items-center justify-center mb-4 mx-auto">
-          <Camera className="w-8 h-8 text-purple-600" />
+        <div className="flex items-center justify-center mb-4 mx-auto">
+          <Camera className="w-16 h-16 text-amber" />
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <h2 className="text-3xl font-bold text-navyblue mb-2">
           Capture Your Designs
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-400">
           Take photos of your designs. Men&apos;s and Women&apos;s designs are required. ✨
         </p>
       </div>
@@ -77,7 +77,7 @@ export function DesignUploadSection({
       />
 
       {error && (
-        <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-4 rounded-2xl border-2 border-red-100">
+        <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-4 border-2 border-red-100 rounded-none">
           <AlertCircle className="w-5 h-5" />
           {error}
         </div>
@@ -87,7 +87,7 @@ export function DesignUploadSection({
         <Button 
           variant="outline" 
           onClick={onBack}
-          className="flex-1 h-12 rounded-xl border-2"
+          className="flex-1 h-12 border-2 rounded-none"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back
@@ -95,7 +95,7 @@ export function DesignUploadSection({
         <Button 
           onClick={onPreview}
           disabled={!canProceedToPreview()}
-          className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold shadow-lg"
+          className="flex-1 h-12 bg-amber hover:bg-amber/90 text-white font-semibold shadow-lg rounded-none"
         >
           Preview & Upload
           <ArrowRight className="w-5 h-5 ml-2" />

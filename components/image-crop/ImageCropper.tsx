@@ -13,30 +13,48 @@ interface ImageCropperProps {
 
 export function ImageCropper({ image, onCrop, onBack }: ImageCropperProps) {
   const imgRef = useRef<HTMLImageElement>(null);
-  const [crop, setCrop] = useState<Crop>({
-    unit: '%',
-    width: 90,
-    height: 90,
-    x: 5,
-    y: 5,
-  });
+  const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getCroppedImg = async (): Promise<Blob | null> => {
-    const currentCrop = completedCrop || {
-      x: crop.x,
-      y: crop.y,
-      width: imgRef.current?.width || 0,
-      height: imgRef.current?.height || 0,
-      unit: 'px'
+  // Initialize crop as a square based on image dimensions
+  const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget;
+    // Use the smaller dimension to create a perfect square that fits
+    const size = Math.min(width, height);
+    const x = (width - size) / 2;
+    const y = (height - size) / 2;
+    
+    const newCrop: Crop = {
+      unit: 'px',
+      width: size,
+      height: size,
+      x: x,
+      y: y,
     };
+    setCrop(newCrop);
+    setCompletedCrop({
+      unit: 'px',
+      width: size,
+      height: size,
+      x: x,
+      y: y,
+    });
+  };
+
+  const getCroppedImg = async (): Promise<Blob | null> => {
+    if (!completedCrop) {
+      console.error('No crop defined');
+      return null;
+    }
 
     if (!imgRef.current) {
       console.error('Missing image ref');
       return null;
     }
+
+    const currentCrop = completedCrop;
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -87,16 +105,12 @@ export function ImageCropper({ image, onCrop, onBack }: ImageCropperProps) {
       setIsProcessing(true);
       setError(null);
       
-      // Use either completedCrop or initial crop values
-      const cropToUse = completedCrop || {
-        unit: 'px',
-        x: crop.x,
-        y: crop.y,
-        width: imgRef.current?.width || 0,
-        height: imgRef.current?.height || 0,
-      };
+      if (!completedCrop) {
+        setError('Please adjust the crop area');
+        setIsProcessing(false);
+        return;
+      }
       
-      setCompletedCrop(cropToUse);
       const croppedBlob = await getCroppedImg();
       
       if (!croppedBlob) {
@@ -122,6 +136,7 @@ export function ImageCropper({ image, onCrop, onBack }: ImageCropperProps) {
             crop={crop}
             onChange={(_, percentCrop) => setCrop(percentCrop)}
             onComplete={(c) => setCompletedCrop(c)}
+            aspect={1}
             className="max-h-[100dvh] touch-none"
             style={{
               // Override ReactCrop styles for better mobile handling
@@ -133,6 +148,7 @@ export function ImageCropper({ image, onCrop, onBack }: ImageCropperProps) {
               ref={imgRef}
               src={image}
               alt="Image to crop"
+              onLoad={onImageLoad}
               className="max-h-[100dvh] w-auto"
               style={{
                 maxWidth: '100%',

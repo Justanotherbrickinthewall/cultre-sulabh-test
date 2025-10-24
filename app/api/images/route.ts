@@ -9,6 +9,8 @@ const uploadSchema = z.object({
   creator_name: z.string().min(1, 'Name is required').max(100),
   creator_email: z.string().email('Valid email is required').optional().or(z.literal('')),
   creator_phone: z.string().optional().or(z.literal('')),
+  collection_name: z.string().optional().or(z.literal('')),
+  location: z.string().optional().or(z.literal('')),
   category: z.enum(['men', 'women', 'others'], { message: 'Category is required' }),
   custom_category_name: z.string().optional().or(z.literal('')),
 });
@@ -34,6 +36,8 @@ export async function POST(request: NextRequest) {
     const creator_name = formData.get('creator_name') as string;
     const creator_email = formData.get('creator_email') as string;
     const creator_phone = formData.get('creator_phone') as string;
+    const collection_name = formData.get('collection_name') as string;
+    const location = formData.get('location') as string;
     const category = formData.get('category') as string;
     const custom_category_name = formData.get('custom_category_name') as string;
 
@@ -43,6 +47,8 @@ export async function POST(request: NextRequest) {
       creator_name,
       creator_email: creator_email || undefined,
       creator_phone: creator_phone || undefined,
+      collection_name: collection_name || undefined,
+      location: location || undefined,
       category,
       custom_category_name: custom_category_name || undefined,
     });
@@ -55,7 +61,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Ensure collection exists FIRST
-    await ensureCollection({ id: collection_id, creator_name, creator_email: creator_email || undefined, creator_phone: creator_phone || undefined });
+    await ensureCollection({ 
+      id: collection_id, 
+      creator_name, 
+      creator_email: creator_email || undefined, 
+      creator_phone: creator_phone || undefined,
+      collection_name: collection_name || undefined,
+      location: location || undefined
+    });
 
     // Validate file
     if (!file) {

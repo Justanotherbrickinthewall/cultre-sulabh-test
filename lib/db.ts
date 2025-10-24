@@ -53,17 +53,20 @@ export async function ensureCollection(data: {
   creator_name: string;
   creator_email?: string;
   creator_phone?: string;
+  collection_name?: string;
+  location?: string;
 }): Promise<void> {
   try {
-    const collectionName = `${data.creator_name}'s Designs`;
+    const collectionName = data.collection_name || `${data.creator_name}'s Designs`;
     await sql`
-      INSERT INTO collections (id, collection_name, creator_name, creator_email, creator_phone)
-      VALUES (${data.id}, ${collectionName}, ${data.creator_name}, ${data.creator_email || null}, ${data.creator_phone || null})
+      INSERT INTO collections (id, collection_name, creator_name, creator_email, creator_phone, location)
+      VALUES (${data.id}, ${collectionName}, ${data.creator_name}, ${data.creator_email || null}, ${data.creator_phone || null}, ${data.location || null})
       ON CONFLICT (id) DO UPDATE SET
         collection_name = EXCLUDED.collection_name,
         creator_name = EXCLUDED.creator_name,
         creator_email = EXCLUDED.creator_email,
         creator_phone = EXCLUDED.creator_phone,
+        location = EXCLUDED.location,
         updated_at = NOW()
     `;
   } catch (error) {
@@ -83,6 +86,7 @@ export async function getAllImages(): Promise<Image[]> {
         c.creator_name,
         c.creator_email,
         c.creator_phone,
+        c.location,
         i.category,
         i.custom_category_name,
         c.status,
@@ -110,6 +114,7 @@ export async function getImagesByCategory(category: 'men' | 'women'): Promise<Im
         c.creator_name,
         c.creator_email,
         c.creator_phone,
+        c.location,
         i.category,
         i.custom_category_name,
         c.status,
@@ -138,6 +143,7 @@ export async function getSelectedImages(category: 'men' | 'women'): Promise<Imag
         c.creator_name,
         c.creator_email,
         c.creator_phone,
+        c.location,
         i.category,
         i.custom_category_name,
         c.status,
@@ -175,6 +181,7 @@ export async function updateCollectionStatusByImageId(
         c.creator_name,
         c.creator_email,
         c.creator_phone,
+        c.location,
         i.category,
         i.custom_category_name,
         c.status,
@@ -223,6 +230,7 @@ export async function getSelectedCollections(): Promise<Collection[]> {
         c.creator_name,
         c.creator_email,
         c.creator_phone,
+        c.location,
         c.status,
         c.created_at,
         c.updated_at,
@@ -243,7 +251,7 @@ export async function getSelectedCollections(): Promise<Collection[]> {
       FROM collections c
       LEFT JOIN images i ON i.collection_id = c.id
       WHERE c.status = 'selected'
-      GROUP BY c.id, c.collection_name, c.creator_name, c.creator_email, c.creator_phone, c.status, c.created_at, c.updated_at
+      GROUP BY c.id, c.collection_name, c.creator_name, c.creator_email, c.creator_phone, c.location, c.status, c.created_at, c.updated_at
       ORDER BY c.updated_at DESC
     `;
     return result.rows as Collection[];
@@ -295,6 +303,7 @@ export async function initializeDatabase(): Promise<void> {
         creator_name VARCHAR(100) NOT NULL,
         creator_email VARCHAR(255),
         creator_phone VARCHAR(20),
+        location VARCHAR(255),
         status VARCHAR(20) CHECK (status IN ('not_selected', 'selected')) DEFAULT 'not_selected',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -335,15 +344,16 @@ export async function initializeDatabase(): Promise<void> {
         password_hash = EXCLUDED.password_hash
     `;
 
-    // Create indexes
+    // Create indexes for better query performance
     await sql`CREATE INDEX IF NOT EXISTS idx_collections_created_at ON collections(created_at)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_collections_status ON collections(status)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_images_category ON images(category)`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_images_status ON images(status)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_images_created_at ON images(created_at)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_images_collection_id ON images(collection_id)`;
-    
 
-    console.log('Database initialized successfully');
+    console.log('✅ Database initialized successfully');
+    console.log('📊 Tables created: collections, images, admin_users');
+    console.log('🔑 Indexes created for optimized queries');
   } catch (error) {
     throw new DatabaseError('Failed to initialize database', error);
   }

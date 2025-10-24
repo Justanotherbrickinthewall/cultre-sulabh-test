@@ -7,6 +7,7 @@ export interface Image {
   creator_name: string;
   creator_email?: string;
   creator_phone?: string;
+  location?: string;
   category: 'men' | 'women' | 'others';
   custom_category_name?: string;
   status: 'not_selected' | 'selected';
@@ -41,6 +42,8 @@ export interface UserDetails {
   name: string;
   email?: string;
   phone?: string;
+  collectionName?: string;
+  location?: string;
 }
 
 export interface ImageCardProps {
@@ -61,6 +64,7 @@ export interface Collection {
   creator_name: string;
   creator_email?: string;
   creator_phone?: string;
+  location?: string;
   status: 'not_selected' | 'selected';
   created_at: string;
   updated_at: string;

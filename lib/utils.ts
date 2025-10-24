@@ -25,15 +25,15 @@ export function validateEmail(email: string): boolean {
 }
 
 export function validateImageFile(file: File): { valid: boolean; error?: string } {
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  const maxSize = 25 * 1024 * 1024; // 25MB
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
   if (!allowedTypes.includes(file.type)) {
-    return { valid: false, error: 'Please upload a JPEG, PNG, or WebP image' };
+    return { valid: false, error: 'Please upload a valid image file (JPEG, PNG, WebP)' };
   }
 
   if (file.size > maxSize) {
-    return { valid: false, error: 'Image must be less than 10MB' };
+    return { valid: false, error: 'Image must be less than 25MB' };
   }
 
   return { valid: true };
